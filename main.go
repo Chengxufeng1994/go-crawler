@@ -6,11 +6,18 @@ import (
 	"time"
 
 	"github.com/Chengxufeng1994/go-crawler/collect"
+	"github.com/Chengxufeng1994/go-crawler/log"
 	"github.com/Chengxufeng1994/go-crawler/proxy"
 	"github.com/PuerkitoBio/goquery"
+	"go.uber.org/zap/zapcore"
 )
 
 func main() {
+	plugin, c := log.NewFilePlugin("./crawler.log", zapcore.InfoLevel)
+	defer c.Close()
+	logger := log.NewLogger(plugin)
+	logger.Info("log init end")
+
 	proxyUrls := []string{"http://127.0.0.1:8888", "http://127.0.0.1:8889"}
 	p, _ := proxy.NewRoundRobinProxySwitcher(proxyUrls...)
 
