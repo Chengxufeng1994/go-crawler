@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Chengxufeng1994/go-crawler/proxy"
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/unicode"
@@ -24,13 +25,15 @@ type Fetcher interface {
 
 type BaseFetch struct {
 	Timeout time.Duration
+	Proxy   proxy.ProxyFunc
 }
 
 var _ Fetcher = (*BaseFetch)(nil)
 
-func NewBaseFetch(timeout time.Duration) *BaseFetch {
+func NewBaseFetch(timeout time.Duration, proxy proxy.ProxyFunc) *BaseFetch {
 	return &BaseFetch{
 		Timeout: timeout,
+		Proxy:   proxy,
 	}
 }
 
@@ -38,6 +41,12 @@ func NewBaseFetch(timeout time.Duration) *BaseFetch {
 func (b *BaseFetch) Get(url string) ([]byte, error) {
 	client := &http.Client{
 		Timeout: b.Timeout,
+	}
+
+	if b.Proxy != nil {
+		transport := http.DefaultTransport.(*http.Transport)
+		transport.Proxy = b.Proxy
+		client.Transport = transport
 	}
 
 	req, err := http.NewRequest("GET", url, nil)
